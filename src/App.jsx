@@ -40,12 +40,10 @@ export default function App() {
     let novosCadastros;
 
     if (editingIndex !== null) {
-      // Modo de edição
       cadastrosAtuais[editingIndex] = data;
       novosCadastros = cadastrosAtuais;
-      setEditingIndex(null); // Sai do modo de edição
+      setEditingIndex(null);
     } else {
-      // Modo de adição
       novosCadastros = [...cadastrosAtuais, data];
     }
 
@@ -53,8 +51,7 @@ export default function App() {
     setCadastros(novosCadastros);
 
     setCadastroSucesso(true);
-    reset(); // Limpa o formulário para o estado inicial
-    // O alerta some após 5 segundos
+    reset();
     setTimeout(() => setCadastroSucesso(false), 5000);
   };
 
@@ -72,14 +69,14 @@ export default function App() {
       }
     } catch (error) {
       console.error("Erro ao carregar cadastros do localStorage:", error);
-      localStorage.removeItem("cadastros"); // Limpa dados corrompidos
+      localStorage.removeItem("cadastros");
     }
   }, []);
 
   const handleEdit = (index) => {
     setEditingIndex(index);
     const cadastroParaEditar = cadastros[index];
-    reset(cadastroParaEditar); // Preenche o formulário com os dados do card
+    reset(cadastroParaEditar);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
