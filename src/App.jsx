@@ -106,7 +106,7 @@ export default function App() {
           </div>
         )}
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-8">
-          Cadastro de pessoas
+          Dados pessoais
         </h1>
         <form onSubmit={handleSubmit(onValidSubmit)}>
           <div className="space-y-6">
