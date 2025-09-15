@@ -5,9 +5,12 @@ import { RegisterSchema } from "./Schemas/RegisterSchema.js";
 import Input from "./Components/Input";
 import MaskedInput from "./Components/MaskedInput";
 import Button from "./Components/Button";
+import Card from "./Components/Card";
 
 export default function App() {
   const [cadastroSucesso, setCadastroSucesso] = useState(false);
+  const [cadastros, setCadastros] = useState([]);
+  const [editingIndex, setEditingIndex] = useState(null);
 
   const {
     register,
@@ -33,9 +36,24 @@ export default function App() {
   });
 
   const onValidSubmit = (data) => {
-    console.log("Dados validados com sucesso:", data);
+    const cadastrosAtuais = [...cadastros];
+    let novosCadastros;
+
+    if (editingIndex !== null) {
+      // Modo de edição
+      cadastrosAtuais[editingIndex] = data;
+      novosCadastros = cadastrosAtuais;
+      setEditingIndex(null); // Sai do modo de edição
+    } else {
+      // Modo de adição
+      novosCadastros = [...cadastrosAtuais, data];
+    }
+
+    localStorage.setItem("cadastros", JSON.stringify(novosCadastros));
+    setCadastros(novosCadastros);
+
     setCadastroSucesso(true);
-    reset(); // Limpa o formulário
+    reset(); // Limpa o formulário para o estado inicial
     // O alerta some após 5 segundos
     setTimeout(() => setCadastroSucesso(false), 5000);
   };
@@ -46,14 +64,41 @@ export default function App() {
     setValue("documento", "");
   }, [tipoPessoa, setValue]);
 
+  useEffect(() => {
+    const cadastrosSalvos = localStorage.getItem("cadastros");
+    try {
+      if (cadastrosSalvos) {
+        setCadastros(JSON.parse(cadastrosSalvos));
+      }
+    } catch (error) {
+      console.error("Erro ao carregar cadastros do localStorage:", error);
+      localStorage.removeItem("cadastros"); // Limpa dados corrompidos
+    }
+  }, []);
+
+  const handleEdit = (index) => {
+    setEditingIndex(index);
+    const cadastroParaEditar = cadastros[index];
+    reset(cadastroParaEditar); // Preenche o formulário com os dados do card
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleDelete = (indexToDelete) => {
+    const novosCadastros = cadastros.filter(
+      (_, index) => index !== indexToDelete
+    );
+    localStorage.setItem("cadastros", JSON.stringify(novosCadastros));
+    setCadastros(novosCadastros);
+  };
+
   const idCampo = tipoPessoa === "Física" ? "cpf" : "cnpj";
   const campo = tipoPessoa === "Física" ? "CPF *" : "CNPJ *";
   const mascaraCampo =
     tipoPessoa === "Física" ? "000.000.000-00" : "00.000.000/0000-00";
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl">
+    <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-start p-4 pt-12">
+      <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-4xl mb-12">
         {cadastroSucesso && (
           <div
             className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-md"
@@ -84,6 +129,7 @@ export default function App() {
                 label="Sobrenome"
                 placeholder="Seu sobrenome"
                 length={35}
+                {...register("sobrenome")}
               />
             </div>
 
@@ -212,11 +258,31 @@ export default function App() {
             </div>
 
             <div className="flex justify-center">
-              <Button type="submit">Cadastrar</Button>
+              <Button type="submit">
+                {editingIndex !== null ? "Salvar Alterações" : "Cadastrar"}
+              </Button>
             </div>
           </div>
         </form>
       </div>
+
+      {cadastros.length > 0 && (
+        <div className="w-full max-w-4xl">
+          <h2 className="text-2xl font-bold text-center text-gray-800 mb-8">
+            Cadastros Realizados
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {cadastros.map((cadastro, index) => (
+              <Card
+                key={index}
+                data={cadastro}
+                onEdit={() => handleEdit(index)}
+                onDelete={() => handleDelete(index)}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

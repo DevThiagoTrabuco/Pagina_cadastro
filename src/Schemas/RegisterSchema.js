@@ -12,6 +12,7 @@ export const RegisterSchema = z
           .map((palavra) => palavra.charAt(0).toUpperCase() + palavra.slice(1))
           .join(" ")
       ),
+    sobrenome: z.string().optional(),
     email: z
       .email({ message: "Email inválido." })
       .min(1, { message: "O email é obrigatório." }),
